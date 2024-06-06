@@ -95,8 +95,8 @@ def load_images(page):
     images_per_page = 32
 
     with lock:
-        assigned_images = Image.query.filter_by(user_id=user_id, page_number=page).all()
-        if assigned_images:
+        prev_images = Image.query.filter_by(user_id=user_id, page_number=page).all()
+        if prev_images:
             images_to_show = [(img.image_name, img.is_flicker) for img in assigned_images]
         else:
             unprocessed_images = get_unprocessed_images(images_per_page)
