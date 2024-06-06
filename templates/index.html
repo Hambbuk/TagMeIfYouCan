@@ -80,18 +80,10 @@
             background-color: green;
             border-radius: 50%;
         }
-        .rankings {
-            margin-top: 20px;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div id="login">
-            <h2>Enter your ID to start</h2>
-            <input type="text" id="user_id" placeholder="User ID">
-            <button onclick="startSession()">Start</button>
-        </div>
         <div id="main" style="display: none;">
             <div class="status">
                 <span id="user-count">Users: 0 <span class="green-circle"></span></span>
@@ -106,58 +98,15 @@
                 <button id="prev-btn">Previous</button>
                 <button id="next-btn">Next</button>
             </div>
-            <div class="rankings" id="rankings">
-                <h3>Top Users</h3>
-                <ol>
-                    <li id="gold-medal">Gold: N/A</li>
-                    <li id="silver-medal">Silver: N/A</li>
-                    <li id="bronze-medal">Bronze: N/A</li>
-                </ol>
-            </div>
         </div>
     </div>
     <script>
         let currentPage = 0;
         let userId = '';
 
-        function startSession() {
-            userId = document.getElementById('user_id').value;
-            if (userId) {
-                fetch('/start_session', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ user_id: userId })
-                }).then(response => {
-                    if (response.ok) {
-                        document.getElementById('login').style.display = 'none';
-                        document.getElementById('main').style.display = 'block';
-                        loadImages();
-                        updateRankings();
-                    } else {
-                        response.json().then(data => {
-                            alert(data.error);
-                        });
-                    }
-                });
-            } else {
-                alert('Please enter a User ID');
-            }
-        }
-
-        async function endSession() {
-            const response = await fetch('/end_session', { method: 'POST' });
-            if (response.ok) {
-                document.getElementById('login').style.display = 'block';
-                document.getElementById('main').style.display = 'none';
-                userId = '';
-            }
-        }
-
-        window.addEventListener('beforeunload', endSession);
-
         document.addEventListener('DOMContentLoaded', () => {
+            startSession();
+
             document.getElementById('next-btn').addEventListener('click', () => {
                 currentPage++;
                 loadImages();
@@ -182,6 +131,29 @@
                 }
             });
         });
+
+        async function startSession() {
+            const response = await fetch('/start_session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await response.json();
+            userId = data.user_id;
+            document.getElementById('main').style.display = 'block';
+            loadImages();
+        }
+
+        async function endSession() {
+            const response = await fetch('/end_session', { method: 'POST' });
+            if (response.ok) {
+                document.getElementById('main').style.display = 'none';
+                userId = '';
+            }
+        }
+
+        window.addEventListener('beforeunload', endSession);
 
         async function loadImages() {
             const response = await fetch(`/load_images/${currentPage}`);
@@ -238,17 +210,6 @@
             document.getElementById('remaining-images').textContent = `Remaining: ${status.remaining_images}`;
             document.getElementById('selected-images').textContent = `Flicker Images: ${status.flicker_images}`;
             document.getElementById('user-count').innerHTML = `Users: ${status.active_users} <span class="green-circle"></span>`;
-        }
-
-        async function updateRankings() {
-            const response = await fetch('/rankings');
-            const rankings = await response.json();
-            const medals = ['gold', 'silver', 'bronze'];
-            rankings.forEach((user, index) => {
-                if (index < 3) {
-                    document.getElementById(`${medals[index]}-medal`).textContent = `${medals[index].charAt(0).toUpperCase() + medals[index].slice(1)}: ${user.user_id} (${user.processed_images} images)`;
-                }
-            });
         }
     </script>
 </body>

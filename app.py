@@ -3,6 +3,8 @@ from flask import Flask, render_template, request, jsonify, session, send_from_d
 from flask_sqlalchemy import SQLAlchemy
 import os
 import threading
+import uuid
+from datetime import timedelta
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -45,8 +47,7 @@ with app.app_context():
     db.session.commit()
 
 lock = threading.Lock()
-active_sessions = set()
-
+active_ips = set()
 
 def get_unprocessed_images(limit=32):
     return Image.query.filter_by(processed=False).limit(limit).all()
@@ -56,7 +57,7 @@ def update_status():
     processed_images_count = Image.query.filter_by(processed=True).count()
     flicker_images_count = Image.query.filter_by(is_flicker=True).count()
     remaining_images = total_images - processed_images_count
-    active_users = User.query.count()
+    active_users = len(active_ips)
     return {
         "total_images": total_images,
         "remaining_images": remaining_images,
@@ -71,15 +72,19 @@ def index():
 
 @app.route('/start_session', methods=['POST'])
 def start_session():
-    data = request.get_json()
-    user_id = data.get('user_id')
+    user_id = str(uuid.uuid4())
     session['user_id'] = user_id
+
+    with lock:
+        ip_address = request.remote_addr
+        active_ips.add(ip_address)
+
     user = User.query.get(user_id)
     if not user:
         user = User(id=user_id)
         db.session.add(user)
     db.session.commit()
-    return jsonify({"status": "session started"})
+    return jsonify({"status": "Session started", "user_id": user_id})
 
 @app.route('/load_images/<int:page>', methods=['GET'])
 def load_images(page):
@@ -88,7 +93,6 @@ def load_images(page):
         return jsonify({"error": "User not assigned"}), 400
 
     images_per_page = 32
-    start_index = page * images_per_page
 
     with lock:
         assigned_images = Image.query.filter_by(user_id=user_id, page_number=page).all()
@@ -133,7 +137,7 @@ def select_image():
         db.session.commit()
 
     status = update_status()
-    return jsonify({"status": "success", "updated_status": status})
+    return jsonify({"status": "Success", "updated_status": status})
 
 @app.route('/static/images/<path:filename>')
 def get_image(filename):
@@ -144,11 +148,20 @@ def status():
     status = update_status()
     return jsonify(status)
 
-@app.route('/rankings')
-def rankings():
-    users = User.query.order_by(User.processed_images_count.desc()).limit(3).all()
-    rankings = [{"user_id": user.id, "processed_images": user.processed_images_count} for user in users]
-    return jsonify(rankings)
+@app.route('/end_session', methods=['POST'])
+def end_session():
+    user_id = session.get('user_id')
+    if user_id:
+        with lock:
+            ip_address = request.remote_addr
+            active_ips.discard(ip_address)
+        session.pop('user_id', None)
+    return jsonify({"status": "Session ended"})
+
+@app.before_request
+def before_request():
+    session.permanent = True
+    app.permanent_session_lifetime = timedelta(minutes=5)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000, debug=True)
