@@ -1,4 +1,4 @@
-![DALL·E 2024-06-07 00 32 13 - A minimalist graphic design of a tag with the text 'TagMeIfYouCan' in a simple, hand-drawn style  The tag is plain with a subtle shadow and placed on ](https://github.com/Hambbuk/TagMeIfYouCan/assets/51123268/5e4c7f2d-052c-4436-be61-c0e8baef9bc3)
+![DALL·E 2024-06-07 00 38 00 - A minimalist design of a tag with the text 'TagMeIfYouCan' in a clean, modern font  The tag is black with white text, and the background is plain whit](https://github.com/Hambbuk/TagMeIfYouCan/assets/51123268/92354982-8c92-451a-81ed-d14c0bb5794b)
 
 # TagMeIfYouCan
 
