@@ -1,6 +1,7 @@
 # TagMeIfYouCan
 
 **TagMeIfYouCan** is an open-source project designed for users to manually tag and classify images, enhancing data accuracy through human input. This project leverages the power of human intuition to build a reliable and precise dataset.
+![DALL·E 2024-06-07 00 32 13 - A minimalist graphic design of a tag with the text 'TagMeIfYouCan' in a simple, hand-drawn style  The tag is plain with a subtle shadow and placed on ](https://github.com/Hambbuk/TagMeIfYouCan/assets/51123268/5e4c7f2d-052c-4436-be61-c0e8baef9bc3)
 
 ## Key Features
 - **Manual Image Tagging:** Users can classify images as 'Flicker' or 'Non-Flicker'.
