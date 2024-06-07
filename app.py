@@ -34,7 +34,7 @@ with app.app_context():
     db.create_all()
 
 # 이미지 폴더 경로 설정
-IMAGE_FOLDER = '/Users/hanbin/dev/Image_classifier/images'
+IMAGE_FOLDER = 'images'
 all_images = os.listdir(IMAGE_FOLDER)
 
 # Initialize images in the database if not already present
